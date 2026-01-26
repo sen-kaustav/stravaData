@@ -1,0 +1,36 @@
+name: Daily Swim Data Update
+
+on:
+  schedule:
+    - cron: "0 22 * * *" # Runs daily at 9 AM UTC
+  workflow_dispatch: # Allows manual triggering
+
+jobs:
+  update-swim-data:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up R
+        uses: r-lib/actions/setup-r@v2
+
+      - name: Install dependencies
+        run: |
+          install.packages(c("httr", "rStrava", "dplyr", "readr"))
+        shell: Rscript {0}
+
+      - name: Run swim data script
+        env:
+          STRAVA_CLIENT_ID: ${{ secrets.STRAVA_CLIENT_ID }}
+          STRAVA_CLIENT_SECRET: ${{ secrets.STRAVA_CLIENT_SECRET }}
+          STRAVA_REFRESH_TOKEN: ${{ secrets.STRAVA_REFRESH_TOKEN }}
+        run: Rscript get_swim_data.R
+
+      - name: Commit and push changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add swim_data.csv
+          git commit -m "Update swim data" || echo "No changes to commit"
+          git push
