@@ -1,6 +1,7 @@
 library(httr)
 library(rStrava)
-library(duckdb)
+library(dplyr)
+library(readr)
 
 # Setup Strava authentication --------------------------------------------
 
@@ -30,20 +31,19 @@ stoken <- config(
   )
 )
 
+
 # Get current day's swim data --------------------------------------------
 
-current_day_swim <- get_activity_list(stoken, after = Sys.Date() - 1) |>
-  compile_activities()
+current_day_swim <- get_activity_list(stoken, after = Sys.Date() - 1)
 
-# Add to database --------------------------------------------------------
-
-con <- dbConnect(duckdb(), dbdir = "swim_data.duckdb")
+# Add to file ------------------------------------------------------------
 
 if (length(current_day_swim)) {
-  new_data <- compile_activities(current_day_swim) |> tibble()
-  dbAppendTable(con, "swim_data", new_data)
+  data <- read_csv("swim_data.csv")
+  new_data <- compile_activities(current_day_swim) |>
+    tibble() |>
+    type_convert(col_types = spec(data))
+
+  bind_rows(data, new_data) |>
+    write_csv("swim_data.csv")
 }
-
-# Disconnect -------------------------------------------------------------
-
-dbDisconnect(con)
