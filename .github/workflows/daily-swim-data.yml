@@ -3,8 +3,6 @@ name: Daily Swim Data Update
 on:
   schedule:
     - cron: "0 22 * * *" # Runs daily at 100 PM UTC
-    premissions: 
-    contents: write
   workflow_dispatch: # Allows manual triggering
 jobs:
   update-swim-data:
