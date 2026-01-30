@@ -32,6 +32,14 @@ stoken <- config(
 )
 
 
+# Manually overwrite data ------------------------------------------------
+
+# all_activities <- get_activity_list(stoken)
+# all_activities |>
+#   compile_activities() |>
+#   tibble() |>
+#   write_csv("swim_data.csv")
+
 # Get current day's swim data --------------------------------------------
 
 current_day_swim <- get_activity_list(stoken, after = Sys.Date() - 1)
