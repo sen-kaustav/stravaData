@@ -52,6 +52,9 @@ if (length(current_day_swim)) {
     tibble() |>
     type_convert(col_types = spec(data))
 
-  bind_rows(data, new_data) |>
-    write_csv("swim_data.csv")
+  if (!all(new_data$id %in% data$id)) {
+    # Add to data only if activity doesn't already exist
+    bind_rows(data, new_data) |>
+      write_csv("swim_data.csv")
+  }
 }
