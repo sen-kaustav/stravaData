@@ -44,17 +44,33 @@ stoken <- config(
 
 current_day_swim <- get_activity_list(stoken, after = Sys.Date() - 1)
 
+# Current month data -----------------------------------------------------
+
+month_start_date <- lubridate::floor_date(Sys.Date(), unit = "month")
+current_month_swim <- get_activity_list(stoken, after = month_start_date - 1)
+
 # Add to file ------------------------------------------------------------
 
 if (length(current_day_swim)) {
   data <- read_csv("swim_data.csv")
+
   new_data <- compile_activities(current_day_swim) |>
+    tibble() |>
+    type_convert(col_types = spec(data))
+
+  curr_month_data <- compile_activities(current_month_swim) |>
     tibble() |>
     type_convert(col_types = spec(data))
 
   if (!all(new_data$id %in% data$id)) {
     # Add to data only if activity doesn't already exist
-    bind_rows(data, new_data) |>
-      write_csv("swim_data.csv")
+    final_df <- bind_rows(data, new_data)
+
+    missing_days <- anti_join(curr_month_data, final_df, by = "id")
+    # Add any days which might have got missed out
+    if (nrow(missing_days) > 0) {
+      final_df <- bind_rows(final_df, missing_days)
+    }
+    write_csv(final_df, "swim_data.csv")
   }
 }

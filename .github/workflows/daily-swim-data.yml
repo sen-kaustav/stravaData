@@ -35,6 +35,7 @@ jobs:
             rStrava
             dplyr
             readr
+            lubridate
 
       - name: Run swim data script
         env:
